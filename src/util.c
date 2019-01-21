@@ -37,7 +37,7 @@ sasm_bool util_file_exists(const char* path)
 #ifdef WIN
     result = access(path, F_OK);
 #elif UNIX
-    result = access(path, F_OK); /* TODO: unix wstring? */
+    result = access(path, F_OK);
 #endif
     return result == -1 ? sasm_false : sasm_true;
 }
@@ -69,7 +69,7 @@ void util_cut_str_end(char* str, char c)
         str[strlen(str) - strlen(strrchr(str, c))] = '\0';
 }
 
-/* StackOverlfow C&P */
+/* StackOverflow C&P */
 char** util_str_split(char* str, const char delimiter, int* splits)
 {
     char** result = 0;
