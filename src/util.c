@@ -18,6 +18,7 @@
 #include <malloc.h>
 #ifdef WIN
 #include <io.h>
+#include <assert.h>
 #include "util.h"
 
 #ifndef F_OK
