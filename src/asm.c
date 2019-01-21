@@ -15,7 +15,8 @@
  */
 
 #include <malloc.h>
-
+#include <string.h>
+#include <stdlib.h>
 #include "asm.h"
 #include "util.h"
 

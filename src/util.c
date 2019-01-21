@@ -14,9 +14,11 @@
  * github.com/univrsal/sasm
  */
 
+#include <stdio.h>
+#include <malloc.h>
 #ifdef WIN
 #include <io.h>
-#include <stdio.h>
+#include "util.h"
 
 #ifndef F_OK
 #define F_OK 0x00
