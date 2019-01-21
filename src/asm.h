@@ -21,7 +21,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#define MNEMONIC_MAX    5
+#define MNEMONIC_MAX    6
 /* Mnemonics can either be
  *  - a single instruction
  *  - an instruction with a secondary argument (e.g. MOV A,B)
@@ -30,7 +30,7 @@
  */
 typedef enum
 {
-    sasm_menominc_invalid = -1,
+    sasm_mnemonic_invalid = -1,
     sasm_mnemonic_proc,     /* Procedure                */
     sasm_mnemonic_fun,      /* Function with argument   */
     sasm_mnemonic_fun_int,  /* Argument is an integer   */

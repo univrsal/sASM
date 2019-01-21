@@ -25,5 +25,10 @@ sasm_bool util_file_empty(const char* path);
 
 void util_cut_str_end(char* str, char c);
 
-void util_cut_str_begin(char** str, char c);
+char** util_str_split(char* str, char delimiter, int* splits);
+
+void util_free_strings(char** c);
+
+void util_replace_char(char* str, char orig, char repl);
+
 #endif //SASM_UTIL_H

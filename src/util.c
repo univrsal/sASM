@@ -14,14 +14,13 @@
  * github.com/univrsal/sasm
  */
 
-#include "util.h"
 #ifdef WIN
 #include <io.h>
-#include <Windows.h>
 #include <stdio.h>
 
+#ifndef F_OK
 #define F_OK 0x00
-
+#endif
 #endif
 
 sasm_bool util_file_exists(const char* path)
@@ -60,7 +59,71 @@ sasm_bool util_file_empty(const char* path)
 
 void util_cut_str_end(char* str, char c)
 {
-    str[strlen(str) - strlen(strrchr(str, c))] = '\0';
+    if (strchr(str, c))
+        str[strlen(str) - strlen(strrchr(str, c))] = '\0';
+}
+
+/* StackOverlfow C&P */
+char** util_str_split(char* str, const char delimiter, int* splits)
+{
+    char** result = 0;
+    size_t count = 0;
+    char* tmp = str;
+    char* last_comma = 0;
+    char delim[2];
+    delim[0] = delimiter;
+    delim[1] = 0;
+
+    /* Count how many elements will be extracted. */
+    while (*tmp) {
+        if (delimiter == *tmp) {
+            count++;
+            last_comma = tmp;
+        }
+        tmp++;
+    }
+    *splits = count;
+    /* Add space for trailing token. */
+    count += last_comma < (str + strlen(str) - 1);
+
+    /* Add space for terminating null string so caller
+       knows where the list of returned strings ends. */
+    count++;
+
+    result = malloc(sizeof(char*) * count);
+
+    if (result) {
+        size_t idx = 0;
+        char* token = strtok(str, delim);
+
+        while (token) {
+            assert(idx < count);
+            *(result + idx++) = strdup(token);
+            token = strtok(0, delim);
+        }
+        assert(idx == count - 1);
+        *(result + idx) = 0;
+    }
+
+    return result;
+}
+
+void util_free_strings(char** c)
+{
+    if (c) {
+        int i;
+        for (i = 0; *(c + i); i++)
+            free(*(c + i));
+        free(c);
+        c = NULL;
+    }
+}
+
+void util_replace_char(char* str, char orig, char repl)
+{
+    char* copy = str;
+    while ((copy = strchr(copy, orig)) != NULL)
+        *copy++ = repl;
 }
 
 void util_cut_str_begin(char** str, char c)
