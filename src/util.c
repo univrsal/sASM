@@ -16,14 +16,17 @@
 
 #include <stdio.h>
 #include <malloc.h>
+#include <assert.h>
+#include <string.h>
+#include "util.h"
 #ifdef WIN
 #include <io.h>
-#include <assert.h>
-#include "util.h"
 
 #ifndef F_OK
 #define F_OK 0x00
 #endif
+#elif UNIX
+#include <unistd.h>
 #endif
 
 sasm_bool util_file_exists(const char* path)
@@ -34,7 +37,7 @@ sasm_bool util_file_exists(const char* path)
 #ifdef WIN
     result = access(path, F_OK);
 #elif UNIX
-    result = access(file_path, F_OK); /* TODO: unix wstring? */
+    result = access(path, F_OK); /* TODO: unix wstring? */
 #endif
     return result == -1 ? sasm_false : sasm_true;
 }

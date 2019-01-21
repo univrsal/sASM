@@ -58,4 +58,5 @@ sasm_asm* sasm_asm_load(const char* file);
 /* Doesn't perform any checks */
 sasm_asm* sasm_asm_load_(FILE* f);
 
+void sasm_asm_free(sasm_asm* sasm);
 #endif //SASM_ASM_H

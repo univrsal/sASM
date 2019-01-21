@@ -27,7 +27,10 @@ sasm_asm* sasm_asm_load(const char *file)
     sasm_bool can_load = util_file_exists(file) && !util_file_empty(file);
 
     if (!can_load)
+    {
+        printf("Error: %s can not be opened.\n", file);
         return NULL;
+    }
     FILE* f = fopen(file, "r");
     return sasm_asm_load_(f);
 }
@@ -46,10 +49,9 @@ sasm_asm* sasm_asm_load_(FILE* f)
         if (strlen(buf) < 1 || buf[0] == ';')
             continue;
 
-        new_mnemonic = malloc(sizeof(sasm_mnemonic));
-        new_mnemonic->type = sasm_mnemonic_proc;
-
         util_replace_char(buf, '\n', '\0');
+        util_replace_char(buf, '\t', '\0');
+
         util_cut_str_end(buf, ';'); /* Cut off any comments at the end */
         if (strlen(buf) < 1)
             continue;
@@ -61,6 +63,9 @@ sasm_asm* sasm_asm_load_(FILE* f)
             util_free_strings(splits);
             continue;
         }
+
+        new_mnemonic = malloc(sizeof(sasm_mnemonic));
+        new_mnemonic->type = sasm_mnemonic_proc;
 
         if (count > 1) /* There's still text left */
         {
@@ -85,4 +90,22 @@ sasm_asm* sasm_asm_load_(FILE* f)
         printf("0x%X|%i|%s|\n", sasm->mnemonics[i]->op_code,
                sasm->mnemonics[i]->type, sasm->mnemonics[i]->id);
     return sasm;
+}
+
+void sasm_asm_free(sasm_asm* sasm)
+{
+    if (sasm)
+    {
+        sasm_mnemonic* m = NULL;
+        int i = 0;
+
+        while(i < sasm->mnemonic_count)
+        {
+            m = sasm->mnemonics[i];
+            free(m);
+            i++;
+        }
+
+        free(sasm->mnemonics);
+    }
 }
