@@ -17,11 +17,17 @@
 #ifndef SASM_UTIL_H
 #define SASM_UTIL_H
 
+#define LINE_LENGTH  256
+
 typedef enum { sasm_false = 0, sasm_true } sasm_bool;
 
 sasm_bool util_file_exists(const char* path);
 
 sasm_bool util_file_empty(const char* path);
+
+sasm_bool util_valid_file(const char* path);
+
+sasm_bool util_create_file(const char* path);
 
 void util_cut_str_end(char* str, char c);
 

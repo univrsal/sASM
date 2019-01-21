@@ -10,4 +10,4 @@ endif()
 
 set(CMAKE_C_STANDARD 99)
 
-add_executable(sasm src/main.c src/asm.h src/asm.c src/util.h src/util.c)
+add_executable(sasm src/main.c src/asm.h src/asm.c src/util.h src/util.c src/parser.c src/parser.h)

@@ -20,13 +20,9 @@
 #include "asm.h"
 #include "util.h"
 
-#define LINE_LENGTH  256
-
-sasm_asm* sasm_asm_load(const char *file)
+sasm_asm_t* sasm_asm_load(const char* file)
 {
-    sasm_bool can_load = util_file_exists(file) && !util_file_empty(file);
-
-    if (!can_load)
+    if (!util_valid_file(file))
     {
         printf("Error: %s can not be opened.\n", file);
         return NULL;
@@ -35,12 +31,12 @@ sasm_asm* sasm_asm_load(const char *file)
     return sasm_asm_load_(f);
 }
 
-sasm_asm* sasm_asm_load_(FILE* f)
+sasm_asm_t* sasm_asm_load_(FILE* f)
 {
     char buf[LINE_LENGTH];
     char** splits = NULL;
-    sasm_mnemonic* new_mnemonic = NULL;
-    sasm_asm* sasm = malloc(sizeof(sasm_asm));
+    sasm_mnemonic_t* new_mnemonic = NULL;
+    sasm_asm_t* sasm = malloc(sizeof(sasm_asm_t));
     sasm->mnemonic_count = 0;
     sasm->mnemonics = NULL;
 
@@ -49,8 +45,8 @@ sasm_asm* sasm_asm_load_(FILE* f)
         if (strlen(buf) < 1 || buf[0] == ';')
             continue;
 
-        util_replace_char(buf, '\n', '\0');
-        util_replace_char(buf, '\t', '\0');
+        util_replace_char(buf, '\n', '\0'); /* Tabs and new lines aren't*/
+        util_replace_char(buf, '\t', '\0'); /* needed -> End string     */
 
         util_cut_str_end(buf, ';'); /* Cut off any comments at the end */
         if (strlen(buf) < 1)
@@ -64,39 +60,43 @@ sasm_asm* sasm_asm_load_(FILE* f)
             continue;
         }
 
-        new_mnemonic = malloc(sizeof(sasm_mnemonic));
-        new_mnemonic->type = sasm_mnemonic_proc;
+        new_mnemonic = malloc(sizeof(sasm_mnemonic_t));
+        new_mnemonic->type = sasm_mnemonic_op;
+        new_mnemonic->arg[0] = '-';
+        new_mnemonic->arg[1] = '\0';
+
 
         if (count > 1) /* There's still text left */
         {
-            if (strstr(splits[2], "ADDR"))
+            if (strstr(splits[2], "ADDR")) {
                 new_mnemonic->type = sasm_mnemonic_jump;
-            else if (strstr(splits[2], "INT"))
+            }
+            else if (strstr(splits[2], "INT")) {
                 new_mnemonic->type = sasm_mnemonic_fun_int;
-            else
+            }
+            else {
                 new_mnemonic->type = sasm_mnemonic_fun;
+                memcpy(new_mnemonic->arg, splits[2], strlen(splits[2]) + 1);
+            }
             /* Count > 2 -> Warning? */
         }
 
         memcpy(new_mnemonic->id, splits[1], strlen(splits[1]) + 1);
         new_mnemonic->op_code = (uint8_t) strtol(splits[0], NULL, 16);
-        sasm->mnemonics = realloc(sasm->mnemonics, (sasm->mnemonic_count + 1) * sizeof(sasm_mnemonic*));
+        sasm->mnemonics = realloc(sasm->mnemonics, (sasm->mnemonic_count + 1) * sizeof(sasm_mnemonic_t*));
         sasm->mnemonics[sasm->mnemonic_count] = new_mnemonic;
         sasm->mnemonic_count++;
         util_free_strings(splits);
     }
 
-    for (int i = 0; i < sasm->mnemonic_count; i++)
-        printf("0x%X|%i|%s|\n", sasm->mnemonics[i]->op_code,
-               sasm->mnemonics[i]->type, sasm->mnemonics[i]->id);
     return sasm;
 }
 
-void sasm_asm_free(sasm_asm* sasm)
+void sasm_asm_free(sasm_asm_t* sasm)
 {
     if (sasm)
     {
-        sasm_mnemonic* m = NULL;
+        sasm_mnemonic_t* m = NULL;
         int i = 0;
 
         while(i < sasm->mnemonic_count)
@@ -108,4 +108,27 @@ void sasm_asm_free(sasm_asm* sasm)
 
         free(sasm->mnemonics);
     }
+}
+
+void sasm_print_asm(sasm_asm_t* sasm)
+{
+    if (sasm) {
+        printf("=== %02llu Mnemonics loaded ===\n", sasm->mnemonic_count);
+        printf("OP Code | Type | ID | Argument\n");
+        for (int i = 0; i < sasm->mnemonic_count; i++) {
+            printf("0x%02X | %i | %-6s | %-8s\n", sasm->mnemonics[i]->op_code,
+                   sasm->mnemonics[i]->type, sasm->mnemonics[i]->id,
+                   sasm->mnemonics[i]->arg);
+        }
+        printf("=========================\n");
+    }
+}
+
+sasm_mnemonic_t* sasm_parse_line(sasm_asm_t* sasm, const char* line)
+{
+    if (!sasm || !line)
+        return NULL;
+
+
+    return NULL;
 }

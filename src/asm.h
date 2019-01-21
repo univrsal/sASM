@@ -22,6 +22,7 @@
 #include <stdio.h>
 
 #define MNEMONIC_MAX    6
+#define ARG_MAX         8
 /* Mnemonics can either be
  *  - a single instruction
  *  - an instruction with a secondary argument (e.g. MOV A,B)
@@ -31,32 +32,39 @@
 typedef enum
 {
     sasm_mnemonic_invalid = -1,
-    sasm_mnemonic_proc,     /* Procedure                */
+    sasm_mnemonic_op,       /* Operation                */
     sasm_mnemonic_fun,      /* Function with argument   */
     sasm_mnemonic_fun_int,  /* Argument is an integer   */
     sasm_mnemonic_jump,     /* Jump/call with address   */
     sasm_menmonic_count
 } sasm_mnemonic_type;
 
-typedef struct
+typedef struct sasm_mnemonic
 {
-    char id[MNEMONIC_MAX];     /* Mnemonics should usually only use three characters */
+    char id[MNEMONIC_MAX];  /* eg. 'MOV' */
+    char arg[ARG_MAX];      /* eg. the 'A' in 'PUSH A' */
     sasm_mnemonic_type type;
     uint8_t op_code;
-} sasm_mnemonic;
+} sasm_mnemonic_t;
 
 /* Contains all mnemonics for a loaded assembly language */
-typedef struct
+typedef struct sasm_asm
 {
     size_t mnemonic_count;
-    sasm_mnemonic** mnemonics;
-} sasm_asm;
-
+    sasm_mnemonic_t** mnemonics;
+} sasm_asm_t;
 
 /* Checks if file exists and isn't empty */
-sasm_asm* sasm_asm_load(const char* file);
+sasm_asm_t* sasm_asm_load(const char* file);
 /* Doesn't perform any checks */
-sasm_asm* sasm_asm_load_(FILE* f);
+sasm_asm_t* sasm_asm_load_(FILE* f);
 
-void sasm_asm_free(sasm_asm* sasm);
+void sasm_asm_free(sasm_asm_t* sasm);
+
+/* Prints out all mnemonics to verify loading worked */
+void sasm_print_asm(sasm_asm_t* sasm);
+
+sasm_mnemonic_t* sasm_parse_line(sasm_asm_t* sasm, const char* line);
+
+sasm_mnemonic_type sasm_parse_type(sasm_asm_t* sasm, const char* line);
 #endif //SASM_ASM_H

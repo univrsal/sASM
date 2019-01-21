@@ -121,7 +121,6 @@ void util_free_strings(char** c)
         for (i = 0; *(c + i); i++)
             free(*(c + i));
         free(c);
-        c = NULL;
     }
 }
 
@@ -130,6 +129,19 @@ void util_replace_char(char* str, char orig, char repl)
     char* copy = str;
     while ((copy = strchr(copy, orig)) != NULL)
         *copy++ = repl;
+}
+
+sasm_bool util_valid_file(const char* path)
+{
+    return util_file_exists(path) && !util_file_empty(path);
+}
+
+sasm_bool util_create_file(const char* path)
+{
+    FILE* f = fopen(path, "ab+");
+    sasm_bool result = f ? sasm_true : sasm_false;
+    if (result) fclose(f);
+    return result;
 }
 
 void util_cut_str_begin(char** str, char c)
