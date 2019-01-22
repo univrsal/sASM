@@ -17,6 +17,7 @@
 #include <malloc.h>
 #include <string.h>
 #include <stdlib.h>
+
 #include "asm.h"
 #include "util.h"
 
@@ -44,18 +45,15 @@ sasm_asm_t* sasm_asm_load_(FILE* f)
     {
         if (strlen(buf) < 1 || buf[0] == ';')
             continue;
-
-        util_replace_char(buf, '\n', '\0'); /* Tabs and new lines aren't*/
-        util_replace_char(buf, '\t', '\0'); /* needed -> End string     */
-
-        util_cut_str_end(buf, ';'); /* Cut off any comments at the end */
+        util_replace_char(buf, ';', '\0');
+        util_trim_str(buf);
         if (strlen(buf) < 1)
             continue;
 
         int count = 0;
         splits = util_str_split(buf, ' ', &count);
 
-        if (count == 0) {
+        if (count < 1) {
             util_free_strings(splits);
             continue;
         }
@@ -129,6 +127,51 @@ sasm_mnemonic_t* sasm_parse_line(sasm_asm_t* sasm, const char* line)
     if (!sasm || !line)
         return NULL;
 
+    sasm_mnemonic_t* result = NULL;
+    int i, count = 0;
+    sasm_bool found = sasm_false;
+    char** splits = util_str_split(line, ' ', &count);
 
-    return NULL;
+    if (count < 1)
+        goto end;
+
+    for (i = 0; i < sasm->mnemonic_count; i++) {
+        if (!strcmp(sasm->mnemonics[i]->id, splits[0])) {
+            switch (sasm->mnemonics[i]->type) {
+                case sasm_mnemonic_op: /* No arguments & id matches */
+                    found = sasm_true;
+                    break;
+                case sasm_mnemonic_fun: /* Argument has to match */
+                    if (count >= 1 && !strcmp(sasm->mnemonics[i]->arg, splits[1]))
+                        found = sasm_true;
+                    break;
+                case sasm_mnemonic_fun_int: /* Argument has to be an int */
+                    if (count >= 1 && util_valid_int(splits[1]))
+                        found = sasm_true;
+                    break;
+                case sasm_mnemonic_jump:
+                    if (count >= 1) /* Label/address validation is done later */
+                        found = sasm_true;
+                    break;
+                default:;
+            }
+        }
+
+        if (found) {
+            result = sasm->mnemonics[i];
+            break;
+        }
+    }
+
+    end:
+    util_free_strings(splits);
+    return result;
+}
+
+sasm_mnemonic_type sasm_parse_type(sasm_asm_t* sasm, const char* line)
+{
+    sasm_mnemonic_t* parsed = sasm_parse_line(sasm, line);
+    if (parsed)
+        return parsed->type;
+    return sasm_mnemonic_invalid;
 }

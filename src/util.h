@@ -14,8 +14,11 @@
  * github.com/univrsal/sasm
  */
 
+
 #ifndef SASM_UTIL_H
 #define SASM_UTIL_H
+
+#include "asm.h"
 
 #define LINE_LENGTH  256
 
@@ -31,10 +34,25 @@ sasm_bool util_create_file(const char* path);
 
 void util_cut_str_end(char* str, char c);
 
-char** util_str_split(char* str, char delimiter, int* splits);
+char** util_str_split(const char* str, char delimiter, int* splits);
 
 void util_free_strings(char** c);
 
 void util_replace_char(char* str, char orig, char repl);
+
+void util_trim_str(char* str);
+
+/* Parsing utilities */
+sasm_bool util_valid_int(const char* str);
+
+sasm_bool util_valid_hex(const char* str);
+
+sasm_bool util_valid_binary(const char* str);
+
+sasm_bool util_valid_decimal(const char* str);
+
+sasm_bool util_valid_label(const char* str);
+
+sasm_bool util_valid_mnemonic(sasm_mnemonic_type t);
 
 #endif //SASM_UTIL_H

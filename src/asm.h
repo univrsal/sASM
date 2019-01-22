@@ -23,6 +23,7 @@
 
 #define MNEMONIC_MAX    6
 #define ARG_MAX         8
+
 /* Mnemonics can either be
  *  - a single instruction
  *  - an instruction with a secondary argument (e.g. MOV A,B)
@@ -52,6 +53,7 @@ typedef struct sasm_asm
 {
     size_t mnemonic_count;
     sasm_mnemonic_t** mnemonics;
+
 } sasm_asm_t;
 
 /* Checks if file exists and isn't empty */
@@ -67,4 +69,5 @@ void sasm_print_asm(sasm_asm_t* sasm);
 sasm_mnemonic_t* sasm_parse_line(sasm_asm_t* sasm, const char* line);
 
 sasm_mnemonic_type sasm_parse_type(sasm_asm_t* sasm, const char* line);
+
 #endif //SASM_ASM_H

@@ -19,6 +19,8 @@
 #include <assert.h>
 #include <string.h>
 #include "util.h"
+#include "parser.h"
+
 #ifdef WIN
 #include <io.h>
 
@@ -70,11 +72,11 @@ void util_cut_str_end(char* str, char c)
 }
 
 /* StackOverflow C&P */
-char** util_str_split(char* str, const char delimiter, int* splits)
+char** util_str_split(const char* str, const char delimiter, int* splits)
 {
     char** result = 0;
     size_t count = 0;
-    char* tmp = str;
+    char* tmp = (char*) str;
     char* last_comma = 0;
     char delim[2];
     delim[0] = delimiter;
@@ -88,7 +90,8 @@ char** util_str_split(char* str, const char delimiter, int* splits)
         }
         tmp++;
     }
-    *splits = count;
+
+    *splits = (int) count;
     /* Add space for trailing token. */
     count += last_comma < (str + strlen(str) - 1);
 
@@ -100,7 +103,7 @@ char** util_str_split(char* str, const char delimiter, int* splits)
 
     if (result) {
         size_t idx = 0;
-        char* token = strtok(str, delim);
+        char* token = strtok((char*) str, delim);
 
         while (token) {
             assert(idx < count);
@@ -142,6 +145,72 @@ sasm_bool util_create_file(const char* path)
     sasm_bool result = f ? sasm_true : sasm_false;
     if (result) fclose(f);
     return result;
+}
+
+sasm_bool util_valid_int(const char* str)
+{
+    sasm_bool result = sasm_false;
+    if (str) {
+        if (strstr(str, "0x") != NULL) /* Hex */
+        {
+            if (util_valid_hex(str + 2)) /* 0x excluded */
+                result = sasm_true;
+        } else if (strstr(str, "0b") != NULL) /* Binary */
+        {
+            if (util_valid_binary(str + 2)) /* 0b excluded */
+                result = sasm_true;
+        } else /* Assume int */
+        {
+            if (util_valid_decimal(str)) /* 0b excluded */
+                result = sasm_true;
+        }
+    }
+    return result;
+}
+
+sasm_bool util_valid_hex(const char* str)
+{
+    return str[strspn(str, "0123456789abcdefABCDEF")] == 0;
+}
+
+sasm_bool util_valid_binary(const char* str)
+{
+    return str[strspn(str, "01")] == 0;
+}
+
+sasm_bool util_valid_decimal(const char* str)
+{
+    return str[strspn(str, "0123456789")] == 0;
+}
+
+sasm_bool util_valid_mnemonic(sasm_mnemonic_type t)
+{
+    return t > sasm_mnemonic_invalid && t < sasm_menmonic_count;
+}
+
+sasm_bool util_valid_label(const char* str)
+{
+    sasm_bool valid_characters = str[strspn(str, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_:")] == 0;
+    sasm_bool colon_at_end = str[strlen(str) - 1] == ':';
+
+    int colon_count = 0;
+    char* copy = (char*) str;
+    for (colon_count = 0; copy[colon_count];
+         copy[colon_count] == ':' ? colon_count++ : *copy++);
+
+    return valid_characters && colon_at_end && colon_count == 1
+           && strlen(str) < LABEL_MAX_LENGTH;
+}
+
+void util_trim_str(char* str)
+{
+    for (size_t i = strlen(str) - 1; i > 0; i--) {
+        if (str[i] == ' ' || str[i] == '\n' || str[i] == '\t'
+            || str[i] == ';')
+            str[i] = '\0';
+        else
+            break;
+    }
 }
 
 void util_cut_str_begin(char** str, char c)
