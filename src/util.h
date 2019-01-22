@@ -22,8 +22,6 @@
 
 #define LINE_LENGTH  256
 
-typedef enum { sasm_false = 0, sasm_true } sasm_bool;
-
 sasm_bool util_file_exists(const char* path);
 
 sasm_bool util_file_empty(const char* path);

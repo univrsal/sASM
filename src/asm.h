@@ -24,6 +24,11 @@
 #define MNEMONIC_MAX    6
 #define ARG_MAX         8
 
+typedef enum
+{
+    sasm_false = 0, sasm_true
+} sasm_bool;
+
 /* Mnemonics can either be
  *  - a single instruction
  *  - an instruction with a secondary argument (e.g. MOV A,B)
@@ -53,7 +58,7 @@ typedef struct sasm_asm
 {
     size_t mnemonic_count;
     sasm_mnemonic_t** mnemonics;
-
+    sasm_bool debug;
 } sasm_asm_t;
 
 /* Checks if file exists and isn't empty */

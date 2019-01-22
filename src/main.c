@@ -2,7 +2,8 @@
 #include "asm.h"
 #include "parser.h"
 
-int print_mnemonics = 0;
+sasm_bool print_mnemonics = sasm_false;
+sasm_bool debug_log = sasm_false;
 char* mnemonics_path = NULL;
 char* input_path = NULL;
 char* output_path = NULL;
@@ -14,7 +15,8 @@ void print_help(void)
            "       -m [path to mnemonic definitions]\n"
            "       -i [path to assembler file]\n"
            "       -o [path to output binary file]\n"
-           "       -p print out loaded mnemonics\n");
+           "       -p print out loaded mnemonics\n"
+           "       -d enable debug log\n");
 }
 
 void parse_args(int argc, char** args)
@@ -35,6 +37,8 @@ void parse_args(int argc, char** args)
         } else if (!strcmp(args[i], "-o")) {
             if (i + 1 < argc)
                 output_path = args[++i];
+        } else if (!strcmp(args[i], "-d")) {
+            debug_log = sasm_true;
         }
     }
 
@@ -54,7 +58,8 @@ int main(int argc, char** args)
         if (asm_lang && print_mnemonics)
             sasm_print_asm(asm_lang);
 
-        if (input_path && output_path) {
+        if (asm_lang && input_path && output_path) {
+            asm_lang->debug = debug_log;
             sasm_parse_result_t* result = sasm_build_asm(asm_lang,
                                                          input_path, output_path);
 
