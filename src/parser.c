@@ -56,7 +56,7 @@ sasm_parse_result_t* sasm_build_asm(sasm_asm_t* sasm, const char* input, const c
     }
 
     /* Now go through file again, and write/validate instructions */
-    create_asm(result, sasm, input_file, labels);
+    create_asm(result, sasm, input_file, labels, label_count);
     return NULL;
 }
 
@@ -109,20 +109,31 @@ sasm_label_t** parse_labels(sasm_parse_result_t* result, sasm_asm_t* sasm,
     return labels;
 }
 
-void create_asm(sasm_parse_result_t* result, sasm_asm_t* sasm, FILE* f, sasm_label_t** labels)
+void create_asm(sasm_parse_result_t* result, sasm_asm_t* sasm, FILE* f,
+                sasm_label_t** labels, size_t label_count)
 {
     if (!result || !f || !labels || !sasm)
         return;
     rewind(f); /* Start at the beginning */
 
     char buf[LINE_LENGTH];
-
+    sasm_mnemonic_t* parsed_mnemonic = NULL;
     while (fgets(buf, LINE_LENGTH, f) != NULL) {
         if (strlen(buf) < 1 || buf[0] == ';')
             continue;
         util_replace_char(buf, ';', '\0');
         util_trim_str(buf); /* Removes, comments, newline and leading spaces */
 
+        if (strlen(buf) < 1)
+            continue;
+        parsed_mnemonic = sasm_parse_line(sasm, buf);
 
+        if (parsed_mnemonic) {
+
+        } else {
+            for (int i = 0; i < label_count; i++) {
+
+            }
+        }
     }
 }
