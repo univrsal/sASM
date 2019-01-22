@@ -54,6 +54,6 @@ sasm_parse_result_t* sasm_build_asm(sasm_asm_t* sasm, const char* input, const c
 
 sasm_label_t** parse_labels(sasm_parse_result_t* result, sasm_asm_t* sasm, FILE* f, size_t* count);
 
-void create_asm(sasm_parse_result_t* result, sasm_asm_t* sasm, FILE* f, sasm_label_t** lables);
+void create_asm(sasm_parse_result_t* result, sasm_asm_t* sasm, FILE* f, sasm_label_t** labels);
 
 #endif //SASM_PARSER_H

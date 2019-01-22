@@ -42,7 +42,7 @@ typedef enum
     sasm_mnemonic_fun,      /* Function with argument   */
     sasm_mnemonic_fun_int,  /* Argument is an integer   */
     sasm_mnemonic_jump,     /* Jump/call with address   */
-    sasm_menmonic_count
+    sasm_mnemonic_count
 } sasm_mnemonic_type;
 
 typedef struct sasm_mnemonic

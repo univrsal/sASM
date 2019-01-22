@@ -185,7 +185,7 @@ sasm_bool util_valid_decimal(const char* str)
 
 sasm_bool util_valid_mnemonic(sasm_mnemonic_type t)
 {
-    return t > sasm_mnemonic_invalid && t < sasm_menmonic_count;
+    return t > sasm_mnemonic_invalid && t < sasm_mnemonic_count;
 }
 
 sasm_bool util_valid_label(const char* str)

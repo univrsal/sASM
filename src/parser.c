@@ -109,9 +109,9 @@ sasm_label_t** parse_labels(sasm_parse_result_t* result, sasm_asm_t* sasm,
     return labels;
 }
 
-void create_asm(sasm_parse_result_t* result, sasm_asm_t* sasm, FILE* f, sasm_label_t** lables)
+void create_asm(sasm_parse_result_t* result, sasm_asm_t* sasm, FILE* f, sasm_label_t** labels)
 {
-    if (!result || !f || !lables || !sasm)
+    if (!result || !f || !labels || !sasm)
         return;
     rewind(f); /* Start at the beginning */
 
