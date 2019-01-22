@@ -36,39 +36,38 @@ sasm_parse_result_t* sasm_build_asm(sasm_asm_t* sasm, const char* input, const c
     }
 
     FILE* input_file = fopen(input, "r");
-    if (!input_file) {
-        printf("Error opening file\n");
+    FILE* output_file = fopen(output, "w");
+
+    if (!input_file || !output_file) {
+        printf("Error opening file: In: %s, Out: %s\n", input_file ?
+        "OK" : "Error", output_file ? "OK" : "Error");
         return NULL;
     }
 
     sasm_parse_result_t* result = malloc(sizeof(sasm_parse_result_t));
-    sasm_label_t** labels = NULL;
-
     /* First collect all labels in the file to allow CALLs and JMPs */
-    size_t label_count;
-    labels = parse_labels(result, sasm, input_file, &label_count);
+    parse_labels(result, sasm, input_file);
 
     if (sasm->debug) {
         printf("=== Collected labels: ===\n");
-        for (int i = 0; i < label_count; i++)
-            printf("[%02i]0x02%X: %s\n", i, labels[i]->address, labels[i]->id);
-        printf("=========================\n");
+        for (int i = 0; i < result->label_count; i++)
+            printf("[%02i]0x02%X: %s\n", i, result->labels[i]->address, result->labels[i]->id);
+        printf("== Last address: 0x%02lX ==\n", result->addr_space);
     }
 
     /* Now go through file again, and write/validate instructions */
-    create_asm(result, sasm, input_file, labels, label_count);
-    return NULL;
+    create_asm(result, sasm, input_file, output_file);
+
+    return result;
 }
 
-sasm_label_t** parse_labels(sasm_parse_result_t* result, sasm_asm_t* sasm,
-                            FILE* f, size_t* count)
+void parse_labels(sasm_parse_result_t* result, sasm_asm_t* sasm, FILE* f)
 {
-    if (!result || !f || !count || !sasm)
-        return NULL;
+    if (!result || !f || !sasm)
+        return;
 
     rewind(f); /* Start at the beginning */
-    *count = 0;
-    sasm_label_t** labels = NULL;
+    result->label_count = 0;
     sasm_label_t* new_label = NULL;
     uint16_t addr = 0;
     char buf[LINE_LENGTH];
@@ -100,40 +99,76 @@ sasm_label_t** parse_labels(sasm_parse_result_t* result, sasm_asm_t* sasm,
             new_label->address = addr;
             memcpy(new_label->id, buf, strlen(buf) + 1);
 
-            labels = realloc(labels, (*count + 1) * sizeof(sasm_label_t*));
-            labels[*count] = new_label;
-            *count += 1;
+            result->labels = realloc(result->labels, (result->label_count + 1) * sizeof(sasm_label_t*));
+            result->labels[result->label_count] = new_label;
+            result->label_count++;
         }
     }
     result->addr_space = addr;
-    return labels;
 }
 
-void create_asm(sasm_parse_result_t* result, sasm_asm_t* sasm, FILE* f,
-                sasm_label_t** labels, size_t label_count)
+void create_asm(sasm_parse_result_t *result, sasm_asm_t *sasm, FILE *ifp, FILE *ofp)
 {
-    if (!result || !f || !labels || !sasm)
+    if (!result || !ifp || !sasm)
         return;
-    rewind(f); /* Start at the beginning */
 
+    rewind(ifp); /* Start at the beginning */
+    size_t line = 0;
     char buf[LINE_LENGTH];
     sasm_mnemonic_t* parsed_mnemonic = NULL;
-    while (fgets(buf, LINE_LENGTH, f) != NULL) {
-        if (strlen(buf) < 1 || buf[0] == ';')
+
+    while (fgets(buf, LINE_LENGTH, ifp) != NULL) {
+        if (strlen(buf) < 1 || buf[0] == ';') {
+            line++;
             continue;
+        }
+
         util_replace_char(buf, ';', '\0');
         util_trim_str(buf); /* Removes, comments, newline and leading spaces */
 
-        if (strlen(buf) < 1)
+        if (strlen(buf) < 1) {
+            line++;
             continue;
+        }
+
         parsed_mnemonic = sasm_parse_line(sasm, buf);
 
         if (parsed_mnemonic) {
-
+            /* Check validity of mnemonic and then write it's opcode */
         } else {
-            for (int i = 0; i < label_count; i++) {
-
+            sasm_bool valid_label = sasm_false;
+            for (int i = 0; i < result->label_count; i++) {
+                if (!strcmp(buf, result->labels[i]->id))
+                {
+                    valid_label = sasm_true;
+                    break;
+                }
             }
+
+            if (!valid_label)
+                add_error(result, sasm_unkown_op, line);
         }
+
+        line++;
+    }
+}
+
+void add_error(sasm_parse_result_t* result, sasm_error_code err, size_t line)
+{
+    result->errors = realloc(result->errors, (result->error_count + 1) * sizeof(sasm_parse_error_t*));
+    result->errors[result->error_count]->line = line;
+    result->errors[result->error_count]->type = err;
+    result->error_count++;
+}
+
+const char* error_to_str(sasm_error_code err)
+{
+    switch (err)
+    {
+        default:
+        case sasm_general_failure:
+            return "Unknown error";
+        case sasm_unkown_op:
+            return "Unknown operation";
     }
 }

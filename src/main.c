@@ -65,7 +65,11 @@ int main(int argc, char** args)
 
             if (result) {
                 if (result->error_count > 0) {
-
+                    for (int i = 0; i < result->error_count; i++)
+                    {
+                        printf("[%03li] %s\n", result->errors[i]->line,
+                               error_to_str(result->errors[i]->type));
+                    }
                 } else {
                     printf("Successfully parsed to %s\n", output_path);
                 }

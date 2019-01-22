@@ -27,7 +27,8 @@ struct sasm_asm;
 
 typedef enum
 {
-    sasm_general_failure
+    sasm_general_failure,
+    sasm_unkown_op,
 } sasm_error_code;
 
 typedef struct sasm_parse_error
@@ -36,24 +37,29 @@ typedef struct sasm_parse_error
     sasm_error_code type;
 } sasm_parse_error_t;
 
-typedef struct sasm_parse_result
-{
-    size_t error_count;
-    sasm_parse_error_t** errors;
-    size_t addr_space;
-} sasm_parse_result_t;
-
 typedef struct sasm_label
 {
     char id[LABEL_MAX_LENGTH];
     uint16_t address;
 } sasm_label_t;
 
+typedef struct sasm_parse_result
+{
+    size_t error_count;
+    sasm_parse_error_t** errors;
+    sasm_label_t** labels;
+    size_t label_count;
+    size_t addr_space;
+} sasm_parse_result_t;
+
 /* Result contains potential errors, has to be freed */
 sasm_parse_result_t* sasm_build_asm(sasm_asm_t* sasm, const char* input, const char* output);
 
-sasm_label_t** parse_labels(sasm_parse_result_t* result, sasm_asm_t* sasm, FILE* f, size_t* count);
+void parse_labels(sasm_parse_result_t* result, sasm_asm_t* sasm, FILE* f);
 
-void create_asm(sasm_parse_result_t* result, sasm_asm_t* sasm, FILE* f, sasm_label_t** labels, size_t label_count);
+void create_asm(sasm_parse_result_t *result, sasm_asm_t *sasm, FILE *ifp, FILE *ofp);
 
+void add_error(sasm_parse_result_t* result, sasm_error_code err, size_t line);
+
+const char* error_to_str(sasm_error_code err);
 #endif //SASM_PARSER_H
