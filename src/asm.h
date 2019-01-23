@@ -71,7 +71,7 @@ void sasm_asm_free(sasm_asm_t* sasm);
 /* Prints out all mnemonics to verify loading worked */
 void sasm_print_asm(sasm_asm_t* sasm);
 
-sasm_mnemonic_t* sasm_parse_line(sasm_asm_t* sasm, const char* line);
+sasm_mnemonic_t* sasm_parse_line(sasm_asm_t* sasm, const char* line, char*** splits);
 
 sasm_mnemonic_type sasm_parse_type(sasm_asm_t* sasm, const char* line);
 

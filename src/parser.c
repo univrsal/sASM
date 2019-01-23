@@ -16,6 +16,7 @@
 
 #include <malloc.h>
 #include <string.h>
+#include <stdlib.h>
 #include "util.h"
 #include "parser.h"
 #include "asm.h"
@@ -45,6 +46,12 @@ sasm_parse_result_t* sasm_build_asm(sasm_asm_t* sasm, const char* input, const c
     }
 
     sasm_parse_result_t* result = malloc(sizeof(sasm_parse_result_t));
+    result->error_count = 0;
+    result->addr_space = 0;
+    result->label_count = 0;
+    result->errors = NULL;
+    result->labels = NULL;
+
     /* First collect all labels in the file to allow CALLs and JMPs */
     parse_labels(result, sasm, input_file);
 
@@ -58,6 +65,8 @@ sasm_parse_result_t* sasm_build_asm(sasm_asm_t* sasm, const char* input, const c
     /* Now go through file again, and write/validate instructions */
     create_asm(result, sasm, input_file, output_file);
 
+    fclose(input_file);
+    fclose(output_file);
     return result;
 }
 
@@ -67,7 +76,6 @@ void parse_labels(sasm_parse_result_t* result, sasm_asm_t* sasm, FILE* f)
         return;
 
     rewind(f); /* Start at the beginning */
-    result->label_count = 0;
     sasm_label_t* new_label = NULL;
     uint16_t addr = 0;
     char buf[LINE_LENGTH];
@@ -114,34 +122,84 @@ void create_asm(sasm_parse_result_t *result, sasm_asm_t *sasm, FILE *ifp, FILE *
 
     rewind(ifp); /* Start at the beginning */
     size_t line = 0;
+    int op_count = 0; /* Only write 8 bytes per line */
     char buf[LINE_LENGTH];
+    char** splits = NULL; /* Contains current line divided by spaces */
     sasm_mnemonic_t* parsed_mnemonic = NULL;
 
     while (fgets(buf, LINE_LENGTH, ifp) != NULL) {
-        if (strlen(buf) < 1 || buf[0] == ';') {
-            line++;
-            continue;
-        }
-
         util_replace_char(buf, ';', '\0');
-        util_trim_str(buf); /* Removes, comments, newline and leading spaces */
+        util_trim_str(buf); /* Removes comments, newline and leading spaces */
 
         if (strlen(buf) < 1) {
             line++;
             continue;
         }
 
-        parsed_mnemonic = sasm_parse_line(sasm, buf);
+        parsed_mnemonic = sasm_parse_line(sasm, buf, &splits);
 
         if (parsed_mnemonic) {
-            /* Check validity of mnemonic and then write it's opcode */
-        } else {
-            sasm_bool valid_label = sasm_false;
-            for (int i = 0; i < result->label_count; i++) {
-                if (!strcmp(buf, result->labels[i]->id))
+            uint16_t jmp_target = 0; /* Contains address of label */
+            /* parse_line verified all types except jumps -> Verify jumps */
+            if (parsed_mnemonic->type == sasm_mnemonic_jump)
+            {
+                sasm_bool valid_jump = sasm_false;
+                if (util_valid_hex(splits[1] + 2)) /* Cut off 0x */
                 {
-                    valid_label = sasm_true;
+                    if (strtol(buf, NULL, 16) <= result->addr_space)
+                        valid_jump = sasm_true;
+                    else
+                        add_error(result, sasm_out_of_range_jump, line);
+                }
+                else
+                {
+                    for (int i = 0; i < result->label_count; i++)
+                    {
+                        if (splits && splits[1] &&
+                            !strcmp(result->labels[i]->id, splits[1]))
+                        {
+                            jmp_target = result->labels[i]->address;
+                            valid_jump = sasm_true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!valid_jump)
+                {
+                    add_error(result, sasm_invalid_jump, line);
+                    util_free_strings(splits);
+                    continue;
+                }
+            }
+
+            /* The mnemonic could be parsed -> Write it to file */
+            fprintf(ofp, "%x", parsed_mnemonic->op_code);
+            add_op_count(ofp, &op_count);
+
+            switch (parsed_mnemonic->type)
+            {
+                case sasm_mnemonic_jump:
+                    fprintf(ofp, "%x", jmp_target);
+                    add_op_count(ofp, &op_count);
                     break;
+                case sasm_mnemonic_fun_int:
+                    fprintf(ofp, "%s", splits[1]);
+                    add_op_count(ofp, &op_count);
+                    break;
+                default: ;
+            }
+        } else { /* It's not a mnemonic -> assume it's a label */
+            sasm_bool valid_label = sasm_false;
+
+            if (util_valid_label(buf))
+            {
+                for (int i = 0; i < result->label_count; i++) {
+                    if (!strcmp(buf, result->labels[i]->id))
+                    {
+                        valid_label = sasm_true;
+                        break;
+                    }
                 }
             }
 
@@ -149,6 +207,7 @@ void create_asm(sasm_parse_result_t *result, sasm_asm_t *sasm, FILE *ifp, FILE *
                 add_error(result, sasm_unkown_op, line);
         }
 
+        util_free_strings(splits);
         line++;
     }
 }
@@ -156,6 +215,7 @@ void create_asm(sasm_parse_result_t *result, sasm_asm_t *sasm, FILE *ifp, FILE *
 void add_error(sasm_parse_result_t* result, sasm_error_code err, size_t line)
 {
     result->errors = realloc(result->errors, (result->error_count + 1) * sizeof(sasm_parse_error_t*));
+    result->errors[result->error_count] = malloc(sizeof(sasm_parse_error_t));
     result->errors[result->error_count]->line = line;
     result->errors[result->error_count]->type = err;
     result->error_count++;
@@ -170,5 +230,22 @@ const char* error_to_str(sasm_error_code err)
             return "Unknown error";
         case sasm_unkown_op:
             return "Unknown operation";
+        case sasm_out_of_range_jump:
+            return "Address points out of range";
+        case sasm_invalid_jump:
+            return "Invalid jump";
+    }
+}
+
+void add_op_count(FILE* of, int* count)
+{
+    *count += 1;
+    if (*count >= 8) {
+        *count = 0;
+        fprintf(of, "\n");
+    }
+    else
+    {
+        fprintf(of, " ");
     }
 }

@@ -28,6 +28,8 @@ struct sasm_asm;
 typedef enum
 {
     sasm_general_failure,
+    sasm_invalid_jump,
+    sasm_out_of_range_jump,
     sasm_unkown_op,
 } sasm_error_code;
 
@@ -62,4 +64,6 @@ void create_asm(sasm_parse_result_t *result, sasm_asm_t *sasm, FILE *ifp, FILE *
 void add_error(sasm_parse_result_t* result, sasm_error_code err, size_t line);
 
 const char* error_to_str(sasm_error_code err);
+
+void add_op_count(FILE* of, int* count);
 #endif //SASM_PARSER_H

@@ -122,7 +122,7 @@ void sasm_print_asm(sasm_asm_t* sasm)
     }
 }
 
-sasm_mnemonic_t* sasm_parse_line(sasm_asm_t* sasm, const char* line)
+sasm_mnemonic_t* sasm_parse_line(sasm_asm_t* sasm, const char* line, char*** splits)
 {
     if (!sasm || !line)
         return NULL;
@@ -130,23 +130,27 @@ sasm_mnemonic_t* sasm_parse_line(sasm_asm_t* sasm, const char* line)
     sasm_mnemonic_t* result = NULL;
     int i, count = 0;
     sasm_bool found = sasm_false;
-    char** splits = util_str_split(line, ' ', &count);
+    *splits = util_str_split(line, ' ', &count);
 
     if (count < 1)
-        goto end;
+    {
+        util_free_strings(*splits);
+        *splits = NULL;
+        return NULL;
+    }
 
     for (i = 0; i < sasm->mnemonic_count; i++) {
-        if (!strcmp(sasm->mnemonics[i]->id, splits[0])) {
+        if (!strcmp(sasm->mnemonics[i]->id, (*splits)[0])) {
             switch (sasm->mnemonics[i]->type) {
                 case sasm_mnemonic_op: /* No arguments & id matches */
                     found = sasm_true;
                     break;
                 case sasm_mnemonic_fun: /* Argument has to match */
-                    if (count >= 1 && !strcmp(sasm->mnemonics[i]->arg, splits[1]))
+                    if (count >= 1 && !strcmp(sasm->mnemonics[i]->arg, (*splits)[1]))
                         found = sasm_true;
                     break;
                 case sasm_mnemonic_fun_int: /* Argument has to be an int */
-                    if (count >= 1 && util_valid_int(splits[1]))
+                    if (count >= 1 && util_valid_int((*splits)[1]))
                         found = sasm_true;
                     break;
                 case sasm_mnemonic_jump:
@@ -163,14 +167,15 @@ sasm_mnemonic_t* sasm_parse_line(sasm_asm_t* sasm, const char* line)
         }
     }
 
-    end:
-    util_free_strings(splits);
     return result;
 }
 
 sasm_mnemonic_type sasm_parse_type(sasm_asm_t* sasm, const char* line)
 {
-    sasm_mnemonic_t* parsed = sasm_parse_line(sasm, line);
+    char** splits = NULL;
+    sasm_mnemonic_t* parsed = sasm_parse_line(sasm, line, &splits);
+    util_free_strings(splits);
+
     if (parsed)
         return parsed->type;
     return sasm_mnemonic_invalid;
