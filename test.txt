@@ -1,0 +1,38 @@
+; Test assembler
+01 NOP
+02 INC A
+03 DEC A
+04 INC B
+05 DEC B
+06 INC C
+07 DEC C
+08 LIA [INT] ; [INT] argument expects either a decimal
+09 LIB [INT] ; a binary (eg. 0b1111)
+0A LIC [INT] ; a hexadecimal (eg. 0xff)
+0B LID [INT]
+;0C
+0D JMP [ADDR] ; [ADDR] argument expects either a label 
+0E MOV A,[B]  ; eg. JMP test or an address eg. 0x02
+0F MOV B,[A]
+10 MOV [A],B
+11 MOV [B],A
+12 MOV A,B
+13 MOV B,A
+14 ADD A,B
+15 ADD D,[A]
+; 16 - 19
+1A PUSH A
+1B PUSH B
+1C POP A
+1D POP B
+;1E
+1F CALL [ADDR]
+;20
+21 RET
+22 RETI
+23 RETI(2)
+;24 - 27
+28 JMP A
+29 JZ [ADDR]
+2A JNZ [ADDR]
+; 2B - 2E
