@@ -189,7 +189,7 @@ void create_asm(sasm_parse_result_t *result, sasm_asm_t *sasm, FILE *ifp, FILE *
                 case sasm_mnemonic_fun_int:
                     if (util_parse_int(splits[1], &parsed_int))
                     {
-                        fprintf(ofp, "%s", splits[1]);
+                        fprintf(ofp, "%x", parsed_int);
                         add_op_count(ofp, &op_count);
                     }
                     else

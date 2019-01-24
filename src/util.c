@@ -224,14 +224,14 @@ void util_cut_str_begin(char** str, char c)
 
 sasm_bool util_parse_int(const char* str, uint8_t* result)
 {
-    if (util_valid_binary(str))
+    if (util_valid_binary(str + 2))
     {
         *result = strtol(str + 2, NULL, 2);
         return sasm_true;
     }
     else
     {
-        if (util_valid_hex(str))
+        if (util_valid_hex(str + 2))
         {
             *result = strtol(str, NULL, 16);
             return sasm_true;
