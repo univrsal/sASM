@@ -40,16 +40,17 @@ sasm_asm_t* sasm_asm_load_(FILE* f)
     sasm_asm_t* sasm = malloc(sizeof(sasm_asm_t));
     sasm->mnemonic_count = 0;
     sasm->mnemonics = NULL;
-
+    
     while (fgets(buf, LINE_LENGTH, f) != NULL)
     {
         if (strlen(buf) < 1 || buf[0] == ';')
             continue;
         util_replace_char(buf, ';', '\0');
         util_trim_str(buf);
+
         if (strlen(buf) < 1)
             continue;
-
+        
         int count = 0;
         splits = util_str_split(buf, ' ', &count);
 
@@ -132,7 +133,7 @@ sasm_mnemonic_t* sasm_parse_line(sasm_asm_t* sasm, const char* line, char*** spl
     sasm_bool found = sasm_false;
     *splits = util_str_split(line, ' ', &count);
 
-    if (count < 1)
+    if (count < 0)
     {
         util_free_strings(*splits);
         *splits = NULL;
