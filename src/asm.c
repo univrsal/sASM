@@ -151,8 +151,12 @@ sasm_mnemonic_t* sasm_parse_line(sasm_asm_t* sasm, const char* line, char*** spl
                         found = sasm_true;
                     break;
                 case sasm_mnemonic_fun_int: /* Argument has to be an int */
-                    if (count >= 1 && util_valid_int((*splits)[1]))
+                    if (count >= 1 && util_valid_int((*splits)[1])
+                        || util_valid_hex((*splits)[1])
+                        || util_valid_binary((*splits)[1]))
+                    {
                         found = sasm_true;
+                    }
                     break;
                 case sasm_mnemonic_jump:
                     if (count >= 1) /* Label/address validation is done later */

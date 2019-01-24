@@ -178,6 +178,7 @@ void create_asm(sasm_parse_result_t *result, sasm_asm_t *sasm, FILE *ifp, FILE *
             /* The mnemonic could be parsed -> Write it to file */
             fprintf(ofp, "%x", parsed_mnemonic->op_code);
             add_op_count(ofp, &op_count);
+            uint8_t parsed_int = 0;
 
             switch (parsed_mnemonic->type)
             {
@@ -186,8 +187,15 @@ void create_asm(sasm_parse_result_t *result, sasm_asm_t *sasm, FILE *ifp, FILE *
                     add_op_count(ofp, &op_count);
                     break;
                 case sasm_mnemonic_fun_int:
-                    fprintf(ofp, "%s", splits[1]);
-                    add_op_count(ofp, &op_count);
+                    if (util_parse_int(splits[1], &parsed_int))
+                    {
+                        fprintf(ofp, "%s", splits[1]);
+                        add_op_count(ofp, &op_count);
+                    }
+                    else
+                    {
+                        add_error(result, sasm_int_parsing, line);
+                    }
                     break;
                 default: ;
             }
@@ -213,6 +221,8 @@ void create_asm(sasm_parse_result_t *result, sasm_asm_t *sasm, FILE *ifp, FILE *
         util_free_strings(splits);
         line++;
     }
+
+    fprintf(ofp, "\n");
 }
 
 void add_error(sasm_parse_result_t* result, sasm_error_code err, size_t line)

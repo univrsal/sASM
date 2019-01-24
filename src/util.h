@@ -53,4 +53,5 @@ sasm_bool util_valid_label(const char* str);
 
 sasm_bool util_valid_mnemonic(sasm_mnemonic_type t);
 
+sasm_bool util_parse_int(const char* str, uint8_t* result);
 #endif //SASM_UTIL_H

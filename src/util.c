@@ -15,6 +15,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <malloc.h>
 #include <assert.h>
 #include <string.h>
@@ -175,7 +176,8 @@ sasm_bool util_valid_hex(const char* str)
 
 sasm_bool util_valid_binary(const char* str)
 {
-    return str[strspn(str, "01")] == 0;
+    return str[strspn(str, "01")] == 0 &&
+           str[0] == '0' && str[1] == 'b';
 }
 
 sasm_bool util_valid_decimal(const char* str)
@@ -218,4 +220,27 @@ void util_cut_str_begin(char** str, char c)
     char* result = strchr(*str, c);
     result++;
     *str = result;
+}
+
+sasm_bool util_parse_int(const char* str, uint8_t* result)
+{
+    if (util_valid_binary(str))
+    {
+        *result = strtol(str + 2, NULL, 2);
+        return sasm_true;
+    }
+    else
+    {
+        if (util_valid_hex(str))
+        {
+            *result = strtol(str, NULL, 16);
+            return sasm_true;
+        }
+        else
+        {
+            *result = strtol(str, NULL, 10);
+            return sasm_true;
+        }
+    }
+    return sasm_false;
 }

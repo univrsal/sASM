@@ -30,6 +30,7 @@ typedef enum
     sasm_general_failure,
     sasm_invalid_jump,
     sasm_out_of_range_jump,
+    sasm_int_parsing,
     sasm_unkown_op,
 } sasm_error_code;
 

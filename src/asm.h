@@ -21,7 +21,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#define MNEMONIC_MAX    6
+#define MNEMONIC_MAX    8
 #define ARG_MAX         8
 
 typedef enum
