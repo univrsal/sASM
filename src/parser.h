@@ -55,6 +55,9 @@ typedef struct sasm_parse_result
     size_t addr_space;
 } sasm_parse_result_t;
 
+
+void sasm_result_free(sasm_parse_result_t* r);
+
 /* Result contains potential errors, has to be freed */
 sasm_parse_result_t* sasm_build_asm(sasm_asm_t* sasm, const char* input, const char* output);
 

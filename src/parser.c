@@ -21,6 +21,22 @@
 #include "parser.h"
 #include "asm.h"
 
+void sasm_result_free(sasm_parse_result_t* r)
+{
+    if (r)
+    {
+        int i;
+        for (i = 0; i < r->error_count; i++)
+        {
+            free(r->errors[i]);
+        }
+        for (i = 0; i < r->label_count; i++)
+        {
+            free(r->labels[i]);
+        }
+    }
+}
+
 sasm_parse_result_t* sasm_build_asm(sasm_asm_t* sasm, const char* input, const char* output)
 {
     if (!sasm || !input || !output)

@@ -74,8 +74,8 @@ int main(int argc, char** args)
                     printf("Successfully parsed to %s\n", output_path);
                 }
             }
+            sasm_result_free(result);
         }
-
         sasm_asm_free(asm_lang);
     } else {
         print_help();
