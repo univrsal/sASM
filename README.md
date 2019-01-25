@@ -1,4 +1,4 @@
-## sasm
+## sASM
 **S**imple **As**e**m**bler
 
 Uses a mnemonic definition file and a text assembler program to create a rom file,
