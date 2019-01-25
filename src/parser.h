@@ -23,7 +23,6 @@
 
 /* Parse assembly text files and write them to binary */
 #define LABEL_MAX_LENGTH    16
-struct sasm_asm;
 
 typedef enum
 {

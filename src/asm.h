@@ -63,16 +63,21 @@ typedef struct sasm_asm
 
 /* Checks if file exists and isn't empty */
 sasm_asm_t* sasm_asm_load(const char* file);
+
 /* Doesn't perform any checks */
 sasm_asm_t* sasm_asm_load_(FILE* f);
 
+/* Free asm created from sasm_asm_load */
 void sasm_asm_free(sasm_asm_t* sasm);
 
 /* Prints out all mnemonics to verify loading worked */
 void sasm_print_asm(sasm_asm_t* sasm);
 
+/* Parses a line read from an asm file
+ * splits will be filled with each word in the line */
 sasm_mnemonic_t* sasm_parse_line(sasm_asm_t* sasm, const char* line, char*** splits);
 
+/* Returns the type of instruction in the provided line */
 sasm_mnemonic_type sasm_parse_type(sasm_asm_t* sasm, const char* line);
 
 #endif //SASM_ASM_H

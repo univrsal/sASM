@@ -39,22 +39,21 @@ sasm_asm_t* sasm_asm_load_(FILE* f)
     char** splits = NULL;
     sasm_mnemonic_t* new_mnemonic = NULL;
     sasm_asm_t* sasm = malloc(sizeof(sasm_asm_t));
+
     sasm->mnemonic_count = 0;
     sasm->mnemonics = NULL;
-    
-    while (fgets(buf, LINE_LENGTH, f) != NULL)
-    {
-        if (strlen(buf) < 1 || buf[0] == ';')
-            continue;
-        util_replace_char(buf, ';', '\0');
+
+    while (fgets(buf, LINE_LENGTH, f) != NULL) {
+        util_replace_char(buf, ';', '\0'); /* strip unwanted parts */
         util_trim_str(buf);
 
-        if (strlen(buf) < 1)
+        if (strlen(buf) < 1) /* skip empty or comment lines */
             continue;
         
         int count = 0;
         splits = util_str_split(buf, ' ', &count);
 
+        /* Line only contained one word. Format expects two */
         if (count < 1) {
             util_free_strings(splits);
             continue;
@@ -65,9 +64,8 @@ sasm_asm_t* sasm_asm_load_(FILE* f)
         new_mnemonic->arg[0] = '-';
         new_mnemonic->arg[1] = '\0';
 
-
-        if (count > 1) /* There's still text left */
-        {
+        /* If there's a string after the mnemonic name  */
+        if (count > 1) {
             if (strstr(splits[2], "ADDR")) {
                 new_mnemonic->type = sasm_mnemonic_jump;
             }
@@ -86,6 +84,7 @@ sasm_asm_t* sasm_asm_load_(FILE* f)
         sasm->mnemonics = realloc(sasm->mnemonics, (sasm->mnemonic_count + 1) * sizeof(sasm_mnemonic_t*));
         sasm->mnemonics[sasm->mnemonic_count] = new_mnemonic;
         sasm->mnemonic_count++;
+
         util_free_strings(splits);
     }
 
@@ -94,17 +93,10 @@ sasm_asm_t* sasm_asm_load_(FILE* f)
 
 void sasm_asm_free(sasm_asm_t* sasm)
 {
-    if (sasm)
-    {
-        sasm_mnemonic_t* m = NULL;
-        int i = 0;
-
-        while(i < sasm->mnemonic_count)
-        {
-            m = sasm->mnemonics[i];
-            free(m);
-            i++;
-        }
+    if (sasm && sasm->mnemonic_count > 0) {
+        do {
+            free(*sasm->mnemonics);
+        } while (*(sasm->mnemonics++));
 
         free(sasm->mnemonics);
     }

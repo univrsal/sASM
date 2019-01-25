@@ -23,18 +23,12 @@
 
 void sasm_result_free(sasm_parse_result_t* r)
 {
-    if (r)
-    {
-        int i;
-        for (i = 0; i < r->error_count; i++)
-        {
-            free(r->errors[i]);
-        }
-        for (i = 0; i < r->label_count; i++)
-        {
-            free(r->labels[i]);
-        }
-    }
+    int i;
+    for (i = 0; i < r->error_count; i++)
+        free(r->errors[i]);
+
+    for (i = 0; i < r->label_count; i++)
+        free(r->labels[i]);
 }
 
 sasm_parse_result_t* sasm_build_asm(sasm_asm_t* sasm, const char* input, const char* output)
@@ -191,7 +185,7 @@ void create_asm(sasm_parse_result_t *result, sasm_asm_t *sasm, FILE *ifp, FILE *
 
         if (parsed_mnemonic) {
             if (sasm->debug)
-                printf("| [%02i] %-6s %i: 0x%02X", line, splits[0],
+                printf("| [%02lli] %-6s %i: 0x%02X", line, splits[0],
                        parsed_mnemonic->type, parsed_mnemonic->op_code);
             uint16_t jmp_target = 0; /* Contains address of label */
             /* parse_line verified all types except jumps -> Verify jumps */

@@ -69,17 +69,15 @@ int main(int argc, char** args)
                                                          input_path, output_path);
             if (result) {
                 if (result->error_count > 0) {
-                    printf("%i Error(s) occured:\n", result->error_count);
+                    printf("%lli Error(s) occurred:\n", result->error_count);
                     for (int i = 0; i < result->error_count; i++)
-                    {
-                        printf("[%03li] %s\n", result->errors[i]->line,
+                        printf("[%03lli] %s\n", result->errors[i]->line,
                                error_to_str(result->errors[i]->type));
-                    }
                 } else {
                     printf("Successfully parsed to %s\n", output_path);
                 }
+                sasm_result_free(result);
             }
-            sasm_result_free(result);
         }
         else
         {

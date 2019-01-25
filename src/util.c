@@ -209,30 +209,23 @@ void util_trim_str(char* str)
     }
 }
 
-void util_cut_str_begin(char** str, char c)
-{
-    char* result = strchr(*str, c);
-    result++;
-    *str = result;
-}
-
 sasm_bool util_parse_int(const char* str, uint8_t* result)
 {
     if (util_valid_binary(str))
     {
-        *result = strtol(str + 2, NULL, 2);
+        *result = (uint8_t) strtol(str + 2, NULL, 2);
         return sasm_true;
     }
     else
     {
         if (util_valid_hex(str))
         {
-            *result = strtol(str, NULL, 16);
+            *result = (uint8_t) strtol(str, NULL, 16);
             return sasm_true;
         }
         else
         {
-            *result = strtol(str, NULL, 10);
+            *result = (uint8_t) strtol(str, NULL, 10);
             return sasm_true;
         }
     }
