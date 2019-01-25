@@ -10,7 +10,7 @@ char* output_path = NULL;
 
 void print_help(void)
 {
-    printf("SASM - Simple Assembler\n");
+    printf("sASM - Simple Assembler\n");
     printf("Usage: -h print this help screen\n"
            "       -m [path to mnemonic definitions]\n"
            "       -i [path to assembler file]\n"
@@ -62,7 +62,6 @@ int main(int argc, char** args)
             asm_lang->debug = debug_log;
             sasm_parse_result_t* result = sasm_build_asm(asm_lang,
                                                          input_path, output_path);
-
             if (result) {
                 if (result->error_count > 0) {
                     printf("%i Error(s) occured:\n", result->error_count);
@@ -76,6 +75,15 @@ int main(int argc, char** args)
                 }
             }
             sasm_result_free(result);
+        }
+        else
+        {
+            if (!input_path)
+                printf("!! Missing input file\n");
+
+            if (!output_path)
+                printf("!! Missing output file\n");
+            print_help();
         }
         sasm_asm_free(asm_lang);
     } else {

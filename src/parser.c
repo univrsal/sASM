@@ -177,7 +177,8 @@ void create_asm(sasm_parse_result_t *result, sasm_asm_t *sasm, FILE *ifp, FILE *
 
     fprintf(ofp, "v2.0 raw\n"); /* Write header */
 
-    printf("+-- File writing\n");
+    if (sasm->debug)
+        printf("+-- File writing\n");
     while (fgets(buf, LINE_LENGTH, ifp) != NULL) {
         line++;
         util_replace_char(buf, ';', '\0');
