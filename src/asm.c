@@ -20,6 +20,7 @@
 
 #include "asm.h"
 #include "util.h"
+#include "parser.h"
 
 sasm_asm_t* sasm_asm_load(const char* file)
 {
@@ -112,14 +113,15 @@ void sasm_asm_free(sasm_asm_t* sasm)
 void sasm_print_asm(sasm_asm_t* sasm)
 {
     if (sasm) {
-        printf("=== %02llu Mnemonics loaded ===\n", sasm->mnemonic_count);
-        printf("OP Code | Type | ID | Argument\n");
+        printf("+--- %02llu Mnemonics loaded --\\\n", sasm->mnemonic_count);
+        printf("| OP Code | Type | ID | Argument\n");
         for (int i = 0; i < sasm->mnemonic_count; i++) {
-            printf("0x%02X | %i | %-6s | %-8s\n", sasm->mnemonics[i]->op_code,
+            printf("| 0x%02X | %i | %-6s | %-8s\n", sasm->mnemonics[i]->op_code,
                    sasm->mnemonics[i]->type, sasm->mnemonics[i]->id,
                    sasm->mnemonics[i]->arg);
         }
-        printf("=========================\n");
+        if (!sasm->debug)
+            printf("+-----------------/\n");
     }
 }
 
@@ -129,18 +131,12 @@ sasm_mnemonic_t* sasm_parse_line(sasm_asm_t* sasm, const char* line, char*** spl
         return NULL;
 
     sasm_mnemonic_t* result = NULL;
-    int i, count = 0;
+    int i, j, count = 0;
     sasm_bool found = sasm_false;
     *splits = util_str_split(line, ' ', &count);
 
-    if (count < 0)
-    {
-        util_free_strings(*splits);
-        *splits = NULL;
-        return NULL;
-    }
-
     for (i = 0; i < sasm->mnemonic_count; i++) {
+
         if (!strcmp(sasm->mnemonics[i]->id, (*splits)[0])) {
             switch (sasm->mnemonics[i]->type) {
                 case sasm_mnemonic_op: /* No arguments & id matches */
@@ -151,16 +147,25 @@ sasm_mnemonic_t* sasm_parse_line(sasm_asm_t* sasm, const char* line, char*** spl
                         found = sasm_true;
                     break;
                 case sasm_mnemonic_fun_int: /* Argument has to be an int */
-                    if (count >= 1 && util_valid_int((*splits)[1])
-                        || util_valid_hex((*splits)[1])
-                        || util_valid_binary((*splits)[1]))
-                    {
+                    if (count >= 1 && util_valid_int((*splits)[1]))
                         found = sasm_true;
-                    }
                     break;
                 case sasm_mnemonic_jump:
-                    if (count >= 1) /* Label/address validation is done later */
-                        found = sasm_true;
+                    if (count >= 1) {
+                        /* Check that the jump argument, isn't an argument for
+                         * another mnemonic. e.g. JMP A is different from JMP 0x0e
+                         * 'A' is an argument for a different JMP operation, while
+                         * 0x0e, or any other label is for the regular jmp operation */
+
+                        found = sasm_true; /* assume true, for loop will change it otherwise */
+                        for (j = 0; j < sasm->mnemonic_count; j++) {
+                            if (!strcmp((*splits)[1], sasm->mnemonics[j]->arg)) {
+                                found = sasm_false;
+                                break;
+                            }
+                        }
+                    }
+
                     break;
                 default:;
             }

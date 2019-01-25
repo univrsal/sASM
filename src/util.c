@@ -152,31 +152,25 @@ sasm_bool util_valid_int(const char* str)
 {
     sasm_bool result = sasm_false;
     if (str) {
-        if (strstr(str, "0x") != NULL) /* Hex */
-        {
-            if (util_valid_hex(str + 2)) /* 0x excluded */
-                result = sasm_true;
-        } else if (strstr(str, "0b") != NULL) /* Binary */
-        {
-            if (util_valid_binary(str + 2)) /* 0b excluded */
-                result = sasm_true;
-        } else /* Assume int */
-        {
-            if (util_valid_decimal(str)) /* 0b excluded */
-                result = sasm_true;
-        }
+        if (util_valid_hex(str))
+            result = sasm_true;
+        else if (util_valid_binary(str))
+            result = sasm_true;
+        else if (util_valid_decimal(str))
+            result = sasm_true;
     }
     return result;
 }
 
 sasm_bool util_valid_hex(const char* str)
 {
-    return str[strspn(str, "0123456789abcdefABCDEF")] == 0;
+    return strlen(str) > 2 && (str + 2)[strspn(str + 2, "0123456789abcdefABCDEF")] == 0 &&
+           str[0] == '0' && str[1] == 'x';
 }
 
 sasm_bool util_valid_binary(const char* str)
 {
-    return str[strspn(str, "01")] == 0 &&
+    return strlen(str) > 2 && (str + 2)[strspn(str + 2, "01")] == 0 &&
            str[0] == '0' && str[1] == 'b';
 }
 
@@ -224,14 +218,14 @@ void util_cut_str_begin(char** str, char c)
 
 sasm_bool util_parse_int(const char* str, uint8_t* result)
 {
-    if (util_valid_binary(str + 2))
+    if (util_valid_binary(str))
     {
         *result = strtol(str + 2, NULL, 2);
         return sasm_true;
     }
     else
     {
-        if (util_valid_hex(str + 2))
+        if (util_valid_hex(str))
         {
             *result = strtol(str, NULL, 16);
             return sasm_true;
@@ -242,5 +236,4 @@ sasm_bool util_parse_int(const char* str, uint8_t* result)
             return sasm_true;
         }
     }
-    return sasm_false;
 }

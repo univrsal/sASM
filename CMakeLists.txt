@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
-project(sasm C)
+project(sASM C)
 
 if(WIN32)
     add_definitions(-DWIN=1)

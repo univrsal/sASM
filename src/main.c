@@ -55,7 +55,7 @@ int main(int argc, char** args)
         if (mnemonics_path)
             asm_lang = sasm_asm_load(mnemonics_path);
 
-        if (asm_lang && print_mnemonics)
+        if (asm_lang && (print_mnemonics || debug_log))
             sasm_print_asm(asm_lang);
 
         if (asm_lang && input_path && output_path) {
@@ -65,6 +65,7 @@ int main(int argc, char** args)
 
             if (result) {
                 if (result->error_count > 0) {
+                    printf("%i Error(s) occured:\n", result->error_count);
                     for (int i = 0; i < result->error_count; i++)
                     {
                         printf("[%03li] %s\n", result->errors[i]->line,

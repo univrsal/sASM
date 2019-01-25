@@ -72,10 +72,10 @@ sasm_parse_result_t* sasm_build_asm(sasm_asm_t* sasm, const char* input, const c
     parse_labels(result, sasm, input_file);
 
     if (sasm->debug) {
-        printf("=== Collected labels: ===\n");
+        printf("+-- Collected labels\n| Target address | Name\n| Last address: 0x%03llX\n",
+               result->addr_space);
         for (int i = 0; i < result->label_count; i++)
-            printf("[%02i] 0x%02X: %s\n", i, result->labels[i]->address, result->labels[i]->id);
-        printf("== Last address: 0x%03lX ==\n", result->addr_space);
+            printf("| 0x%02X: %s\n", result->labels[i]->address, result->labels[i]->id);
     }
 
     /* Now go through file again, and write/validate instructions */
@@ -94,9 +94,14 @@ void parse_labels(sasm_parse_result_t* result, sasm_asm_t* sasm, FILE* f)
     rewind(f); /* Start at the beginning */
     sasm_label_t* new_label = NULL;
     uint16_t addr = 0;
+    size_t line = 0;
     char buf[LINE_LENGTH];
 
+    if (sasm->debug)
+        printf("+--- Parsing -------\n| Address | Mnemonic\n");
+
     while (fgets(buf, LINE_LENGTH, f) != NULL) {
+        line++;
         if (strlen(buf) < 1 || buf[0] == ';')
             continue;
         util_replace_char(buf, ';', '\0');
@@ -106,6 +111,8 @@ void parse_labels(sasm_parse_result_t* result, sasm_asm_t* sasm, FILE* f)
         sasm_mnemonic_type type = sasm_parse_type(sasm, buf);
 
         if (util_valid_mnemonic(type)) {
+            if (sasm->debug)
+                printf("| [0x%02X] %s\n", addr, buf);
             switch (type) {
                 case sasm_mnemonic_op:
                 case sasm_mnemonic_fun: /* Fallthrough */
@@ -119,15 +126,40 @@ void parse_labels(sasm_parse_result_t* result, sasm_asm_t* sasm, FILE* f)
             }
         } else if (util_valid_label(buf)) {
             /* If it's not an instruction, but a label add it to the list */
-            new_label = malloc(sizeof(sasm_label_t));
-            new_label->address = addr;
-            memcpy(new_label->id, buf, strlen(buf) + 1);
-            new_label->id[strlen(buf) - 1] = '\0'; /* remove ':' */
-            result->labels = realloc(result->labels, (result->label_count + 1) * sizeof(sasm_label_t*));
-            result->labels[result->label_count] = new_label;
-            result->label_count++;
+            sasm_bool valid_label = sasm_true;
+            int i;
+
+            /* First check if the label already exists */
+            for (i = 0; i < result->label_count; i++) {
+                if (!strcmp(buf, result->labels[i]->id)) {
+                    valid_label = sasm_false;
+                    add_error(result, sasm_duplicate_label, line);
+                    break;
+                }
+            }
+
+            /* Then check if the label would conflict with mnemonics */
+            for (i = 0; i < sasm->mnemonic_count; i++) {
+                if (!strcmp(sasm->mnemonics[i]->id, buf)
+                    || !strcmp(sasm->mnemonics[i]->arg, buf)) {
+                    valid_label = sasm_false;
+                    add_error(result, sasm_label_conflict, line);
+                    break;
+                }
+            }
+
+            if (valid_label) {
+                new_label = malloc(sizeof(sasm_label_t));
+                new_label->address = addr;
+                memcpy(new_label->id, buf, strlen(buf) + 1);
+                new_label->id[strlen(buf) - 1] = '\0'; /* remove ':' */
+                result->labels = realloc(result->labels, (result->label_count + 1) * sizeof(sasm_label_t*));
+                result->labels[result->label_count] = new_label;
+                result->label_count++;
+            }
         }
     }
+
     result->addr_space = addr;
 }
 
@@ -145,24 +177,27 @@ void create_asm(sasm_parse_result_t *result, sasm_asm_t *sasm, FILE *ifp, FILE *
 
     fprintf(ofp, "v2.0 raw\n"); /* Write header */
 
+    printf("+-- File writing\n");
     while (fgets(buf, LINE_LENGTH, ifp) != NULL) {
+        line++;
         util_replace_char(buf, ';', '\0');
         util_trim_str(buf); /* Removes comments, newline and leading spaces */
 
-        if (strlen(buf) < 1) {
-            line++;
+        if (strlen(buf) < 1)
             continue;
-        }
 
         parsed_mnemonic = sasm_parse_line(sasm, buf, &splits);
 
         if (parsed_mnemonic) {
+            if (sasm->debug)
+                printf("| [%02i] %-6s %i: 0x%02X", line, splits[0],
+                       parsed_mnemonic->type, parsed_mnemonic->op_code);
             uint16_t jmp_target = 0; /* Contains address of label */
             /* parse_line verified all types except jumps -> Verify jumps */
             if (parsed_mnemonic->type == sasm_mnemonic_jump)
             {
                 sasm_bool valid_jump = sasm_false;
-                if (util_valid_hex(splits[1] + 2)) /* Cut off 0x */
+                if (util_valid_hex(splits[1]))
                 {
                     if (strtol(buf, NULL, 16) <= result->addr_space)
                         valid_jump = sasm_true;
@@ -178,6 +213,9 @@ void create_asm(sasm_parse_result_t *result, sasm_asm_t *sasm, FILE *ifp, FILE *
                         {
                             jmp_target = result->labels[i]->address;
                             valid_jump = sasm_true;
+                            if (sasm->debug)
+                                printf(", jumps to %-8s(0x%02X)",
+                                       result->labels[i]->id, result->labels[i]->address);
                             break;
                         }
                     }
@@ -187,9 +225,14 @@ void create_asm(sasm_parse_result_t *result, sasm_asm_t *sasm, FILE *ifp, FILE *
                 {
                     add_error(result, sasm_invalid_jump, line);
                     util_free_strings(splits);
+                    if (sasm->debug)
+                        printf("\n");
                     continue;
                 }
             }
+
+            if (sasm->debug)
+                printf("\n");
 
             /* The mnemonic could be parsed -> Write it to file */
             fprintf(ofp, "%x", parsed_mnemonic->op_code);
@@ -235,9 +278,10 @@ void create_asm(sasm_parse_result_t *result, sasm_asm_t *sasm, FILE *ifp, FILE *
         }
 
         util_free_strings(splits);
-        line++;
     }
 
+    if (sasm->debug)
+        printf("+-------------------/\n");
     fprintf(ofp, "\n");
 }
 
@@ -245,7 +289,7 @@ void add_error(sasm_parse_result_t* result, sasm_error_code err, size_t line)
 {
     result->errors = realloc(result->errors, (result->error_count + 1) * sizeof(sasm_parse_error_t*));
     result->errors[result->error_count] = malloc(sizeof(sasm_parse_error_t));
-    result->errors[result->error_count]->line = line + 1; /* starts counting at 0 */
+    result->errors[result->error_count]->line = line; /* starts counting at 0 */
     result->errors[result->error_count]->type = err;
     result->error_count++;
 }
@@ -261,6 +305,10 @@ const char* error_to_str(sasm_error_code err)
             return "Unknown operation";
         case sasm_out_of_range_jump:
             return "Address points out of range";
+        case sasm_duplicate_label:
+            return "Duplicate label name";
+        case sasm_label_conflict:
+            return "Label name conflicts with mnemonic name";
         case sasm_invalid_jump:
             return "Invalid jump";
     }

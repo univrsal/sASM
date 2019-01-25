@@ -31,6 +31,8 @@ typedef enum
     sasm_invalid_jump,
     sasm_out_of_range_jump,
     sasm_int_parsing,
+    sasm_duplicate_label,
+    sasm_label_conflict,
     sasm_unkown_op,
 } sasm_error_code;
 
