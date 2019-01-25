@@ -16,16 +16,25 @@ which can be loaded into [Logisim](https://github.com/LogisimIt/Logisim).
 See test.txt for an example mnemonic definition, test.asm for an example program and test.rom1 for the resulting rom file.
 
 #### Compiling
-Requires [cmake](https://cmake.org).
-
 Linux:
 ```
 $ git clone https://github.com/univrsal/sasm.git
 $ cd sasm
+```
+Either configure over [cmake](https://cmake.org):
+```
 $ cmake ./
 $ make
 ```
+Or compile directly:
+```
+$ gcc -o sasm src/*.c -I ./src
+$ ./sasm
+```
+
 Windows:
+
+Requires [cmake](https://cmake.org).
 1. Clone the repository
 2. Open CMake Gui
 3. Set "Where is the source code:" to the repository folder
