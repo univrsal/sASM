@@ -54,6 +54,11 @@ int main(int argc, char** args)
 
         if (mnemonics_path)
             asm_lang = sasm_asm_load(mnemonics_path);
+        else
+            printf("!! No mnemonic definition file\n");
+        
+        if (!asm_lang)
+            printf("!! No mnemonics\n");
 
         if (asm_lang && (print_mnemonics || debug_log))
             sasm_print_asm(asm_lang);
