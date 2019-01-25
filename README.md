@@ -2,7 +2,7 @@
 **S**imple **As**e**m**bler
 
 Uses a mnemonic definition file and a text assembler program to create a rom file,
-which can be loaded into [Logisim](logisim.altervista.org/).
+which can be loaded into [Logisim](https://github.com/LogisimIt/Logisim).
 
 #### Usage:
 ```
