@@ -51,12 +51,10 @@ sasm_bool util_file_empty(const char* path)
         return sasm_true;
     FILE *fp = fopen(path, "r");
 
-    if (fp)
-    {
+    if (fp) {
         fseek(fp, 0, SEEK_END);
         long s = ftell(fp);
-        if (s == 0)
-        {
+        if (s == 0) {
             fclose(fp);
             return sasm_true;
         }
