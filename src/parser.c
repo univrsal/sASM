@@ -122,6 +122,7 @@ void parse_labels(sasm_parse_result_t* result, sasm_asm_t* sasm, FILE* f)
             /* If it's not an instruction, but a label add it to the list */
             sasm_bool valid_label = sasm_true;
             int i;
+            buf[strlen(buf) - 1] = '\0'; /* Cut off ':' */
 
             /* First check if the label already exists */
             for (i = 0; i < result->label_count; i++) {
@@ -146,7 +147,6 @@ void parse_labels(sasm_parse_result_t* result, sasm_asm_t* sasm, FILE* f)
                 new_label = malloc(sizeof(sasm_label_t));
                 new_label->address = addr;
                 memcpy(new_label->id, buf, strlen(buf) + 1);
-                new_label->id[strlen(buf) - 1] = '\0'; /* remove ':' */
                 result->labels = realloc(result->labels, (result->label_count + 1) * sizeof(sasm_label_t*));
                 result->labels[result->label_count] = new_label;
                 result->label_count++;

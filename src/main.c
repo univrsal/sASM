@@ -1,4 +1,6 @@
 #include <string.h>
+#include <time.h>
+#include <stdio.h>
 #include "asm.h"
 #include "parser.h"
 
@@ -64,10 +66,15 @@ int main(int argc, char** args)
             sasm_print_asm(asm_lang);
 
         if (asm_lang && input_path && output_path) {
+            clock_t time = clock();
             asm_lang->debug = debug_log;
             sasm_parse_result_t* result = sasm_build_asm(asm_lang,
                                                          input_path, output_path);
             if (result) {
+                time = clock() - time;
+                double ms = ((double) time) / CLOCKS_PER_SEC * 1000;
+                printf("Done, parsing took %.2fms\n", ms);
+
                 if (result->error_count > 0) {
                     printf("%lli Error(s) occurred:\n", result->error_count);
                     for (int i = 0; i < result->error_count; i++)

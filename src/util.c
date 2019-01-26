@@ -186,7 +186,8 @@ sasm_bool util_valid_mnemonic(sasm_mnemonic_type t)
 
 sasm_bool util_valid_label(const char* str)
 {
-    sasm_bool valid_characters = str[strspn(str, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_:")] == 0;
+    sasm_bool valid_characters =
+            str[strspn(str, "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_:")] == 0;
     sasm_bool colon_at_end = str[strlen(str) - 1] == ':';
 
     int colon_count = 0;

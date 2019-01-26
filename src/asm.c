@@ -94,9 +94,9 @@ sasm_asm_t* sasm_asm_load_(FILE* f)
 void sasm_asm_free(sasm_asm_t* sasm)
 {
     if (sasm && sasm->mnemonic_count > 0) {
-        do {
-            free(*sasm->mnemonics);
-        } while (*(sasm->mnemonics++));
+        int i = 0;
+        while (i < sasm->mnemonic_count)
+            free(sasm->mnemonics[i++]);
 
         free(sasm->mnemonics);
     }
