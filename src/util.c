@@ -66,12 +66,6 @@ sasm_bool util_file_empty(const char* path)
     return sasm_false;
 }
 
-void util_cut_str_end(char* str, char c)
-{
-    if (strchr(str, c))
-        str[strlen(str) - strlen(strrchr(str, c))] = '\0';
-}
-
 /* StackOverflow C&P */
 char** util_str_split(const char* str, const char delimiter, int* splits)
 {
@@ -192,6 +186,7 @@ sasm_bool util_valid_label(const char* str)
 
     int colon_count = 0;
     char* copy = (char*) str;
+
     for (colon_count = 0; copy[colon_count];
          copy[colon_count] == ':' ? colon_count++ : *copy++);
 
@@ -212,20 +207,14 @@ void util_trim_str(char* str)
 
 sasm_bool util_parse_int(const char* str, uint8_t* result)
 {
-    if (util_valid_binary(str))
-    {
+    if (util_valid_binary(str)) {
         *result = (uint8_t) strtol(str + 2, NULL, 2);
         return sasm_true;
-    }
-    else
-    {
-        if (util_valid_hex(str))
-        {
+    } else {
+        if (util_valid_hex(str)) {
             *result = (uint8_t) strtol(str, NULL, 16);
             return sasm_true;
-        }
-        else
-        {
+        } else {
             *result = (uint8_t) strtol(str, NULL, 10);
             return sasm_true;
         }

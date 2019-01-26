@@ -95,6 +95,7 @@ int main(int argc, char** args)
                 printf("!! Missing output file\n");
             print_help();
         }
+
         sasm_asm_free(asm_lang);
     } else {
         print_help();
