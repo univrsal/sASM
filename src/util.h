@@ -30,8 +30,6 @@ sasm_bool util_valid_file(const char* path);
 
 sasm_bool util_create_file(const char* path);
 
-void util_cut_str_end(char* str, char c);
-
 char** util_str_split(const char* str, char delimiter, int* splits);
 
 void util_free_strings(char** c);

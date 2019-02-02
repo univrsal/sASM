@@ -51,12 +51,10 @@ sasm_bool util_file_empty(const char* path)
         return sasm_true;
     FILE *fp = fopen(path, "r");
 
-    if (fp)
-    {
+    if (fp) {
         fseek(fp, 0, SEEK_END);
         long s = ftell(fp);
-        if (s == 0)
-        {
+        if (s == 0) {
             fclose(fp);
             return sasm_true;
         }
@@ -64,12 +62,6 @@ sasm_bool util_file_empty(const char* path)
     }
 
     return sasm_false;
-}
-
-void util_cut_str_end(char* str, char c)
-{
-    if (strchr(str, c))
-        str[strlen(str) - strlen(strrchr(str, c))] = '\0';
 }
 
 /* StackOverflow C&P */
@@ -186,11 +178,13 @@ sasm_bool util_valid_mnemonic(sasm_mnemonic_type t)
 
 sasm_bool util_valid_label(const char* str)
 {
-    sasm_bool valid_characters = str[strspn(str, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_:")] == 0;
+    sasm_bool valid_characters =
+            str[strspn(str, "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_:")] == 0;
     sasm_bool colon_at_end = str[strlen(str) - 1] == ':';
 
     int colon_count = 0;
     char* copy = (char*) str;
+
     for (colon_count = 0; copy[colon_count];
          copy[colon_count] == ':' ? colon_count++ : *copy++);
 
@@ -209,30 +203,17 @@ void util_trim_str(char* str)
     }
 }
 
-void util_cut_str_begin(char** str, char c)
-{
-    char* result = strchr(*str, c);
-    result++;
-    *str = result;
-}
-
 sasm_bool util_parse_int(const char* str, uint8_t* result)
 {
-    if (util_valid_binary(str))
-    {
-        *result = strtol(str + 2, NULL, 2);
+    if (util_valid_binary(str)) {
+        *result = (uint8_t) strtol(str + 2, NULL, 2);
         return sasm_true;
-    }
-    else
-    {
-        if (util_valid_hex(str))
-        {
-            *result = strtol(str, NULL, 16);
+    } else {
+        if (util_valid_hex(str)) {
+            *result = (uint8_t) strtol(str, NULL, 16);
             return sasm_true;
-        }
-        else
-        {
-            *result = strtol(str, NULL, 10);
+        } else {
+            *result = (uint8_t) strtol(str, NULL, 10);
             return sasm_true;
         }
     }
