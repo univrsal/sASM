@@ -184,6 +184,7 @@ void create_asm(sasm_parse_result_t *result, sasm_asm_t *sasm, FILE *ifp, FILE *
 
     if (sasm->debug)
         printf("+-- File writing\n");
+
     while (fgets(buf, LINE_LENGTH, ifp) != NULL) {
         line++;
         util_replace_char(buf, ';', '\0');
@@ -198,39 +199,35 @@ void create_asm(sasm_parse_result_t *result, sasm_asm_t *sasm, FILE *ifp, FILE *
             if (sasm->debug)
                 printf("| [%02lli] %-6s %i: 0x%02X", line, splits[0],
                        parsed_mnemonic->type, parsed_mnemonic->op_code);
+
             uint16_t jmp_target = 0; /* Contains address of label */
             /* parse_line verified all types except jumps -> Verify jumps */
-            if (parsed_mnemonic->type == sasm_mnemonic_jump)
-            {
+            if (parsed_mnemonic->type == sasm_mnemonic_jump) {
                 sasm_bool valid_jump = sasm_false;
-                if (util_valid_hex(splits[1]))
-                {
+                if (util_valid_hex(splits[1])) {
                     if (strtol(buf, NULL, 16) <= result->addr_space)
                         valid_jump = sasm_true;
                     else
                         add_error(result, sasm_out_of_range_jump, line);
-                }
-                else
-                {
-                    for (int i = 0; i < result->label_count; i++)
-                    {
+                } else {
+                    for (int i = 0; i < result->label_count; i++) {
                         if (splits && splits[1] &&
-                            !strcmp(result->labels[i]->id, splits[1]))
-                        {
+                            !strcmp(result->labels[i]->id, splits[1])) {
                             jmp_target = result->labels[i]->address;
                             valid_jump = sasm_true;
                             if (sasm->debug)
                                 printf(", jumps to %-8s(0x%02X)",
                                        result->labels[i]->id, result->labels[i]->address);
+
                             break;
                         }
                     }
                 }
 
-                if (!valid_jump)
-                {
+                if (!valid_jump) {
                     add_error(result, sasm_invalid_jump, line);
                     util_free_strings(splits);
+
                     if (sasm->debug)
                         printf("\n");
                     continue;
@@ -245,20 +242,16 @@ void create_asm(sasm_parse_result_t *result, sasm_asm_t *sasm, FILE *ifp, FILE *
             add_op_count(ofp, &op_count);
             uint8_t parsed_int = 0;
 
-            switch (parsed_mnemonic->type)
-            {
+            switch (parsed_mnemonic->type) {
                 case sasm_mnemonic_jump:
                     fprintf(ofp, "%x", jmp_target);
                     add_op_count(ofp, &op_count);
                     break;
                 case sasm_mnemonic_fun_int:
-                    if (util_parse_int(splits[1], &parsed_int))
-                    {
+                    if (util_parse_int(splits[1], &parsed_int)) {
                         fprintf(ofp, "%x", parsed_int);
                         add_op_count(ofp, &op_count);
-                    }
-                    else
-                    {
+                    } else {
                         add_error(result, sasm_int_parsing, line);
                     }
                     break;
@@ -267,12 +260,10 @@ void create_asm(sasm_parse_result_t *result, sasm_asm_t *sasm, FILE *ifp, FILE *
         } else { /* It's not a mnemonic -> assume it's a label */
             sasm_bool valid_label = sasm_false;
 
-            if (util_valid_label(buf))
-            {
+            if (util_valid_label(buf)) {
                 buf[strlen(buf) - 1] = '\0'; /* remove ':' */
                 for (int i = 0; i < result->label_count; i++) {
-                    if (!strcmp(buf, result->labels[i]->id))
-                    {
+                    if (!strcmp(buf, result->labels[i]->id)) {
                         valid_label = sasm_true;
                         break;
                     }
@@ -302,8 +293,7 @@ void add_error(sasm_parse_result_t* result, sasm_error_code err, size_t line)
 
 const char* error_to_str(sasm_error_code err)
 {
-    switch (err)
-    {
+    switch (err) {
         default:
         case sasm_general_failure:
             return "Unknown error";
@@ -326,9 +316,7 @@ void add_op_count(FILE* of, int* count)
     if (*count >= 8) {
         *count = 0;
         fprintf(of, "\n");
-    }
-    else
-    {
+    } else {
         fprintf(of, " ");
     }
 }

@@ -24,8 +24,7 @@
 
 sasm_asm_t* sasm_asm_load(const char* file)
 {
-    if (!util_valid_file(file))
-    {
+    if (!util_valid_file(file)) {
         printf("Error: %s can not be opened.\n", file);
         return NULL;
     }
@@ -70,11 +69,9 @@ sasm_asm_t* sasm_asm_load_(FILE* f)
         if (count > 1) {
             if (strstr(splits[2], "ADDR")) {
                 new_mnemonic->type = sasm_mnemonic_jump;
-            }
-            else if (strstr(splits[2], "INT")) {
+            } else if (strstr(splits[2], "INT")) {
                 new_mnemonic->type = sasm_mnemonic_fun_int;
-            }
-            else {
+            } else {
                 new_mnemonic->type = sasm_mnemonic_fun;
                 memcpy(new_mnemonic->arg, splits[2], strlen(splits[2]) + 1);
             }
@@ -118,6 +115,7 @@ void sasm_print_asm(sasm_asm_t* sasm)
                    sasm->mnemonics[i]->type, sasm->mnemonics[i]->id,
                    sasm->mnemonics[i]->arg);
         }
+
         if (!sasm->debug)
             printf("+-----------------/\n");
     }
@@ -134,7 +132,6 @@ sasm_mnemonic_t* sasm_parse_line(sasm_asm_t* sasm, const char* line, char*** spl
     *splits = util_str_split(line, ' ', &count);
 
     for (i = 0; i < sasm->mnemonic_count; i++) {
-
         if (!strcmp(sasm->mnemonics[i]->id, (*splits)[0])) {
             switch (sasm->mnemonics[i]->type) {
                 case sasm_mnemonic_op: /* No arguments & id matches */
