@@ -36,12 +36,8 @@ sasm_bool util_file_exists(const char* path)
 {
     if (!path)
         return sasm_false;
-    int result;
-#ifdef WIN
-    result = access(path, F_OK);
-#elif UNIX
-    result = access(path, F_OK);
-#endif
+    int result = access(path, F_OK);
+
     return result == -1 ? sasm_false : sasm_true;
 }
 
