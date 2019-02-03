@@ -23,12 +23,23 @@
 
 void sasm_result_free(sasm_parse_result_t* r)
 {
-    int i;
-    for (i = 0; i < r->error_count; i++)
-        free(r->errors[i]);
+    if (!r)
+        return;
 
-    for (i = 0; i < r->label_count; i++)
-        free(r->labels[i]);
+    int i;
+    if (r->errors) {
+        for (i = 0; i < r->error_count; i++)
+            free(r->errors[i]);
+        free(r->errors);
+    }
+
+    if (r->labels) {
+        for (i = 0; i < r->label_count; i++)
+            free(r->labels[i]);
+        free(r->labels);
+    }
+
+    free(r);
 }
 
 sasm_parse_result_t* sasm_build_asm(sasm_asm_t* sasm, const char* input, const char* output)

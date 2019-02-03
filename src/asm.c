@@ -30,7 +30,9 @@ sasm_asm_t* sasm_asm_load(const char* file)
         return NULL;
     }
     FILE* f = fopen(file, "r");
-    return sasm_asm_load_(f);
+    sasm_asm_t* r = sasm_asm_load_(f);
+    fclose(f);
+    return r;
 }
 
 sasm_asm_t* sasm_asm_load_(FILE* f)
@@ -93,13 +95,17 @@ sasm_asm_t* sasm_asm_load_(FILE* f)
 
 void sasm_asm_free(sasm_asm_t* sasm)
 {
-    if (sasm && sasm->mnemonic_count > 0) {
-        int i = 0;
-        while (i < sasm->mnemonic_count)
-            free(sasm->mnemonics[i++]);
+    if (sasm) {
+        if (sasm->mnemonic_count > 0) {
+            int i = 0;
+            while (i < sasm->mnemonic_count)
+                free(sasm->mnemonics[i++]);
 
-        free(sasm->mnemonics);
+            free(sasm->mnemonics);
+        }
+        free(sasm);
     }
+
 }
 
 void sasm_print_asm(sasm_asm_t* sasm)
