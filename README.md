@@ -31,7 +31,7 @@ $ make
 ```
 Or compile directly:
 ```
-$ gcc -o sasm src/*.c -I ./src
+$ gcc -o sasm src/*.c -I ./src -DUNIX=1
 $ ./sasm
 ```
 
