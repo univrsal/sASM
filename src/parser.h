@@ -71,4 +71,8 @@ void add_error(sasm_parse_result_t* result, sasm_error_code err, size_t line);
 const char* error_to_str(sasm_error_code err);
 
 void add_op_count(FILE* of, int* count);
+
+sasm_bool check_label_conflict(sasm_asm_t* sasm, const char* label);
+
+sasm_bool is_label_duplicate(sasm_parse_result_t* result, const char* label);
 #endif //SASM_PARSER_H

@@ -128,7 +128,7 @@ sasm_mnemonic_t* sasm_parse_line(sasm_asm_t* sasm, const char* line, char*** spl
 
     sasm_mnemonic_t* result = NULL;
     int i, j, count = 0;
-    sasm_bool found = sasm_false;
+    sasm_bool found = sasm_false; /* Was a matching mnemonic found? */
     *splits = util_str_split(line, ' ', &count);
 
     for (i = 0; i < sasm->mnemonic_count; i++) {
