@@ -78,6 +78,7 @@ sasm_asm_t* sasm_asm_load_(FILE* f)
             /* Count > 2 -> Warning? */
         }
 
+        /* Add parsed mnemonic */
         memcpy(new_mnemonic->id, splits[1], strlen(splits[1]) + 1);
         new_mnemonic->op_code = (uint8_t) strtol(splits[0], NULL, 16);
         sasm->mnemonics = realloc(sasm->mnemonics, (sasm->mnemonic_count + 1) * sizeof(sasm_mnemonic_t*));
